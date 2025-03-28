@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Thumb Nursery</title>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <header>
+        <h1>Welcome to Green Online Nursery</h1>
+        <p>One shop for all things green and growing!</p>
+    </header>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="contact.html">Contact</a>
+        <a href="" id="orderLink">Order</a>
+        <a href="#" id="cartLink">Cart (<span id="cartCount">0</span>)</a>
+        <a id="loginLogoutLink" href="login.html">Login</a>
+    </nav>
+    <main>
+        <aside>
+            <nav>
+                <ul>
+                    <li><a href="#" onclick="loadPlants('indoor')">Indoor</a></li>
+                    <li><a href="#" onclick="loadPlants('Medicinal')">Medicinal</a></li>
+                    <li><a href="#" onclick="loadPlants('Fruits')">Fruits</a></li>
+                    <li><a href="#" onclick="loadPlants('Flowers')">Flowers</a></li>
+                    <li><a href="#" onclick="loadPlants('Bonsai')">Bonsai</a></li>
+                    <li><a href="#" onclick="loadPlants('Pesticides')">Pesticides</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <div id="plantDisplay">
+            </div>
+        <div id="cartDisplay"></div>
+    </main>
+    <script>
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        updateCartDisplay();
+
+        async function loadPlants(category) {
+            try {
+                const response = await fetch(`http://localhost:3000/plants/${category}`);
+                if (!response.ok) {
+                    alert('Failed to fetch plants');
+                    return;
+                }
+                const plants = await response.json();
+                displayPlants(plants);
+            } catch (error) {
+                console.error('Error fetching plants:', error);
+            }
+        }
+
+        function displayPlants(plants) {
+            const plantDisplay = document.getElementById('plantDisplay');
+            plantDisplay.innerHTML = '';
+            plants.forEach(plant => {
+                const plantItem = document.createElement('div');
+                plantItem.className = 'plant-item';
+                const img = document.createElement('img');
+                img.src = plant.plantImage;
+                img.alt = plant.plantName;
+                const name = document.createElement('h3');
+                name.textContent = plant.plantName;
+                const price = document.createElement('p');
+                price.textContent = `$${plant.price}`;
+                const buyButton = document.createElement('button');
+                buyButton.textContent = 'Buy Now';
+                buyButton.addEventListener('click', () => {
+                    const username = localStorage.getItem('username');
+                    if (!username) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    addToCart(plant);
+                    updateCartDisplay();
+                });
+                plantItem.appendChild(img);
+                plantItem.appendChild(name);
+                plantItem.appendChild(price);
+                plantItem.appendChild(buyButton);
+                plantDisplay.appendChild(plantItem);
+            });
+        }
+        document.getElementById('cartLink').addEventListener('click', (e) => {
+    e.preventDefault(); // Prevent default link behavior
+    window.location.href = 'cart.html'; // Navigate to the cart page
+});
+        function addToCart(plant) {
+            const existingItem = cart.find(item => item.id === plant.id);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ ...plant, quantity: 1 });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartCount = document.getElementById('cartCount');
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+        }
+
+        function showCartDetails() {
+            let cartDetailsHTML = '<div id="cartPopup"><h2>Shopping Cart</h2>';
+            let totalAmount = 0;
+
+            if (cart.length === 0) {
+                cartDetailsHTML += '<p>Your cart is empty.</p>';
+            } else {
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    totalAmount += itemTotal;
+                    cartDetailsHTML += `
+                        <div class="cart-item-popup">
+                            <img src="${item.plantImage}" alt="${item.plantName}">
+                            <div class="details">
+                                <h3>${item.plantName}</h3>
+                                <p>Price: $${item.price}</p>
+                            </div>
+                            <div class="quantity">Quantity: ${item.quantity}</div>
+                        </div>
+                    `;
+                });
+                cartDetailsHTML += `<div class="cart-total-popup">Total: $${totalAmount.toFixed(2)}</div>`;
+                cartDetailsHTML += '<button onclick="checkout()">Proceed to Checkout</button>';
+            }
+
+            cartDetailsHTML += '<button onclick="closeCart()">Close Cart</button></div>';
+            document.body.insertAdjacentHTML('beforeend', cartDetailsHTML);
+        }
+
+        function closeCart() {
+            const cartPopup = document.getElementById('cartPopup');
+            if (cartPopup) {
+                cartPopup.remove();
+            }
+        }
+        function checkout() {
+            if (cart.length > 0) {
+                window.location.href = 'shipping.html'; // Simply redirect to the shipping page
+            } else {
+                alert('Your cart is empty. Nothing to checkout.');
+            }
+        }
+        
+        function updateCartCountInNavbar() {
+            const cartCount = localStorage.getItem('cart') ? JSON.parse(localStorage.getItem('cart')).reduce((sum, item) => sum + item.quantity, 0) : 0;
+            const cartCountElements = document.querySelectorAll('#cartCount');
+            cartCountElements.forEach(el => el.textContent = cartCount);
+        }
+
+        function displayOrderedItemsInNavbar() {
+            const orderedItems = JSON.parse(localStorage.getItem('orderedItems'));
+            const orderLink = document.getElementById('orderLink');
+
+            if (orderLink && orderedItems && orderedItems.length > 0) {
+                const totalOrderedItems = orderedItems.reduce((sum, item) => sum + item.quantity, 0);
+                orderLink.textContent = `Order (${totalOrderedItems} items)`;
+                orderLink.href = 'order.html'; // Assuming you have an order.html page
+            } else if (orderLink) {
+                orderLink.textContent = 'Order';
+                orderLink.href = 'order.html';
+            }
+        }
+
+        const loginLogoutLink = document.getElementById('loginLogoutLink');
+
+        function checkLoginStatus() {
+            const username = localStorage.getItem('username');
+            if (username) {
+                loginLogoutLink.textContent = username + ' (Logout)';
+                loginLogoutLink.href = '#';
+                loginLogoutLink.onclick = logout;
+            } else {
+                loginLogoutLink.textContent = 'Login';
+                loginLogoutLink.href = 'login.html';
+                loginLogoutLink.onclick = null;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('username');
+            localStorage.removeItem('cart');
+            cart = [];
+            updateCartDisplay();
+            checkLoginStatus();
+            closeCart(); // Close cart if open during logout
+        }
+
+        document.getElementById('cartLink').addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default link behavior
+            showCartDetails();
+        });
+        updateCartCountInNavbar(); // Call on homepage load
+        displayOrderedItemsInNavbar();
+        
+        checkLoginStatus();
+        // Initial load of a category (optional)
+        // loadPlants('indoor');
+    </script>
+</body>
+</html>

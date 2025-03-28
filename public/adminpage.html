@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Management</title>
+   <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <a href="/add-plants">Add Plants</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <div class="container">
+        <h2>Add Plant Details</h2>
+        <form action="/submit-plant" method="POST">
+            <div class="form-group">
+                <label for="plantName">Plant Name:</label>
+                <input type="text" id="plantName" name="plantName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="plantType">Plant Type:</label>
+                <input type="text" id="plantType" name="plantType" required>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price (INR):</label>
+                <input type="number" id="price" name="price" required>
+            </div>
+            <div class="form-group">
+                <label for="plantImage">Plant Image:</label>
+                <input type="file" id="plantImage" name="plantImage" accept="image/*" required>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent default form submission
+    
+            const formData = new FormData(this); // Create FormData object to handle file uploads
+    
+            try {
+                const response = await fetch('/submit-plant', {
+                    method: 'POST',
+                    body: formData
+                });
+    
+                const result = await response.text(); // Handle response
+                if (response.ok) {
+                    alert('Plant added successfully!');
+                    this.reset(); // Clear the form after successful submission
+                } else {
+                    alert(`Error: ${result}`);
+                }
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                alert('Failed to submit plant details. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Details</title>
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+<body>
+    <h1>Shipping Information</h1>
+    <div class="shipping-form">
+        <form id="shippingForm">
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Shipping Address:</label>
+                <textarea id="address" name="address" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="city">City:</label>
+                <input type="text" id="city" name="city" required>
+            </div>
+            <div class="form-group">
+                <label for="state">State/Province:</label>
+                <input type="text" id="state" name="state">
+            </div>
+            <div class="form-group">
+                <label for="zip">Zip/Postal Code:</label>
+                <input type="text" id="zip" name="zip">
+            </div>
+            <button type="button" class="submit-button" onclick="processOrder()">Place Order</button>
+        </form>
+    </div>
+
+    <script>
+        
+        function displayOrderedItemsInNavbar() {
+    console.log('displayOrderedItemsInNavbar called');
+    const orderedItems = JSON.parse(localStorage.getItem('orderedItems'));
+    console.log('orderedItems:', orderedItems);
+    const orderLink = document.getElementById('orderLink');
+    console.log('orderLink:', orderLink);
+
+    if (orderLink && orderedItems && orderedItems.length > 0) {
+        const totalOrderedItems = orderedItems.reduce((sum, item) => sum + item.quantity, 0);
+        console.log('totalOrderedItems:', totalOrderedItems);
+        orderLink.textContent = `Order (${totalOrderedItems} items)`;
+        orderLink.href = 'order.html';
+        console.log('Order link updated');
+    } else if (orderLink) {
+        orderLink.textContent = 'Order';
+        orderLink.href = 'order.html';
+        console.log('Order link reset');
+    }
+}
+function processOrder() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const address = document.getElementById('address').value;
+            const city = document.getElementById('city').value;
+            const state = document.getElementById('state').value;
+            const zip = document.getElementById('zip').value;
+
+            if (!name || !email || !address || !city) {
+                alert('Please fill in all the required shipping details.');
+                return;
+            }
+
+            const cart = JSON.parse(localStorage.getItem('cart'));
+            if (cart && cart.length > 0) {
+                alert('Thank you for your order!\nYou can view your items in the "Order" tab on the homepage.');
+
+                // Store ordered items in local storage
+                localStorage.setItem('orderedItems', JSON.stringify(cart));
+
+                // Clear the cart AFTER processing the order
+              //  localStorage.removeItem('cart');
+
+                // Redirect to the homepage
+                window.location.href = 'homepage.html';
+            } else {
+                alert('Your cart is empty.');
+                window.location.href = 'homepage.html'; // Or back to the cart page
+            }
+        }
+</script>
+</body>
+</html>

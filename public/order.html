@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        
+        .order-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .order-details, .order-items {
+            margin-bottom: 20px;
+        }
+
+        .order-details p, .order-items p {
+            margin: 5px 0;
+        }
+
+        .order-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+
+        .order-item img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .order-item-details {
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        .order-item-details h4 {
+            margin: 0;
+        }
+
+        .order-item-details p {
+            margin: 3px 0;
+        }
+
+        .order-date {
+            text-align: center;
+            font-size: 16px;
+            color: #555;
+        }
+
+        .back-button {
+            display: block;
+            width: 200px;
+            margin: 20px auto;
+            text-align: center;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+
+        .back-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="order-container">
+        <h1>Order Confirmation</h1>
+
+        <!-- Order Date -->
+        <div class="order-date" id="orderDate"></div>
+
+        <!-- Order Items -->
+        <div class="order-items" id="orderItemsContainer">
+            <!-- Order items will be displayed here dynamically -->
+        </div>
+
+        <a href="homepage.html" class="back-button">Back to Homepage</a>
+        <button class="back-button" onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        window.onload = function() {
+            // Check if it's a new user login (using username) and reset the order if necessary
+            checkUserLogin();
+            displayOrderDetails();
+            
+        };
+
+        function checkUserLogin() {
+            const username = localStorage.getItem('username'); // Assuming username is stored in localStorage when logged in
+            
+            if (!username) {
+                // No username found, user is not logged in, reset the order
+                console.log('No user logged in, or session expired.');
+                resetOrder();
+            } else {
+                // User is logged in, ensure order data is intact for them
+                console.log(`User logged in with username: ${username}`);
+                // Optionally, you can also check if it's the first login and reset the order
+            }
+        }
+
+        function resetOrder() {
+            // Reset cart or order data for a new or logged-out user
+            localStorage.removeItem('orderedItems');  // Remove items from the order
+            localStorage.setItem('cart', JSON.stringify([]));  // Empty the cart
+            localStorage.setItem('cartCount', 0);  // Set cart count to zero
+            console.log('Order and cart have been reset. Cart count is now zero.');
+        }
+        function logout() {
+            // Log the user out and clear the order and cart data
+            localStorage.removeItem('username'); // Remove username (effectively logging out)
+            resetOrder(); // Clear the order and reset cart count to 0
+            window.location.href = 'homepage.html'; // Redirect to homepage or login page
+        }
+        function displayOrderDetails() {
+            // Get ordered items from localStorage
+            const orderedItems = JSON.parse(localStorage.getItem('orderedItems'));
+
+            // Check if there are any ordered items
+            if (orderedItems && orderedItems.length > 0) {
+                // Display the order date
+                const orderDate = new Date();
+                const formattedDate = orderDate.toLocaleDateString() + ' ' + orderDate.toLocaleTimeString();
+                document.getElementById('orderDate').textContent = `Order Date: ${formattedDate}`;
+
+                // Display ordered items
+                const orderItemsContainer = document.getElementById('orderItemsContainer');
+                orderedItems.forEach(item => {
+                    const orderItemDiv = document.createElement('div');
+                    orderItemDiv.className = 'order-item';
+
+                    orderItemDiv.innerHTML = `
+                        <div class="order-item">
+                            <img src="${item.plantImage}" alt="${item.plantName}">
+                            <div class="order-item-details">
+                                <h4>${item.plantName}</h4>
+                                <p>Price: $${item.price}</p>
+                                <p>Quantity: ${item.quantity}</p>
+                                <p>Total: $${(item.price * item.quantity).toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `;
+                    orderItemsContainer.appendChild(orderItemDiv);
+                });
+            } else {
+                document.getElementById('orderItemsContainer').innerHTML = '<p>No items found in the order.</p>';
+            }
+            
+        }
+    </script>
+</body>
+</html>
